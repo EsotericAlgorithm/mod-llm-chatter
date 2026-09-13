@@ -71,6 +71,8 @@ from chatter_shared import (
     strip_conversation_actions,
     append_conversation_json_instruction,
     select_conversation_message_count,
+    shorten_chat_message,
+    shorten_chat_question,
 )
 from chatter_db import (
     get_character_info_by_name,
@@ -847,8 +849,7 @@ def process_group_event(db, client, config, event):
         if not message:
             _mark_event(db, event_id, 'skipped')
             return False
-        if len(message) > 255:
-            message = message[:252] + "..."
+        message = shorten_chat_message(message)
 
 
         # 5. Insert message for delivery via party
@@ -1270,8 +1271,7 @@ def process_group_join_batch_event(
             )
             if not message:
                 continue
-            if len(message) > 255:
-                message = message[:252] + "..."
+            message = shorten_chat_message(message)
 
             # Stagger: 0s, 2s, 4s, 6s ...
             delay = idx * 2
@@ -1559,8 +1559,7 @@ def _batch_welcome(
     )
     if not msg:
         return
-    if len(msg) > 255:
-        msg = msg[:252] + "..."
+    msg = shorten_chat_message(msg)
 
 
     emote = parsed.get('emote')
@@ -1978,8 +1977,7 @@ def process_group_player_msg_event(
         if not message:
             _mark_event(db, event_id, 'skipped')
             return False
-        if len(message) > 255:
-            message = message[:252] + "..."
+        message = shorten_chat_message(message)
 
 
         emote = parsed.get('emote')
@@ -2306,8 +2304,7 @@ def _try_second_bot_response(
     )
     if not msg2:
         return
-    if len(msg2) > 255:
-        msg2 = msg2[:252] + "..."
+    msg2 = shorten_chat_message(msg2)
 
 
     emote = parsed.get('emote')
@@ -2415,8 +2412,7 @@ def _welcome_from_existing_bot(
     )
     if not msg:
         return
-    if len(msg) > 255:
-        msg = msg[:252] + "..."
+    msg = shorten_chat_message(msg)
 
 
     # Insert with 5s delay (greeting is at 2s)
@@ -2666,8 +2662,7 @@ def _maybe_comment_on_composition(
     )
     if not msg:
         return
-    if len(msg) > 255:
-        msg = msg[:252] + "..."
+    msg = shorten_chat_message(msg)
 
 
     emote = parsed.get('emote')
@@ -4254,8 +4249,7 @@ def _idle_single_statement(
         )
         if not message:
             return False
-        if len(message) > 255:
-            message = message[:252] + "..."
+        message = shorten_chat_message(message)
 
 
         # Insert directly into messages table
@@ -4584,8 +4578,7 @@ def _idle_conversation(
             )
             if not text:
                 continue
-            if len(text) > 255:
-                text = text[:252] + "..."
+            text = shorten_chat_message(text)
 
             # Find the bot_guid for speaker
             speaker_guid = None
@@ -5047,9 +5040,7 @@ def check_bot_questions(db, client, config):
             ):
                 return False
 
-        if len(message) > 255:
-            # Preserve trailing '?' after truncation
-            message = message[:254] + "?"
+        message = shorten_chat_question(message)
 
         # Deliver the question
         emote = parsed.get('emote')
