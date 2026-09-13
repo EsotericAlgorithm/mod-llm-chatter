@@ -402,8 +402,34 @@ Make sure WoW is in the foreground (the agent only captures when WoW is the acti
 > started before worldserver.
 
 **Existing installs** must apply migration scripts manually
-when updating to a newer version. Migrations live in
-`data/sql/characters/updates/` and are named by date:
+when updating to a newer version. Migrations live under
+`data/sql/*/updates/` and are named by date.
+
+### Required spell override repair
+
+Installations that loaded the optional talent data before April 9, 2026
+must apply the following world-database migration. Older versions inserted
+incomplete `spell_dbc` overrides that could cause spell-script validation
+warnings and hide real client spell effects. The migration only removes
+rows that still match that legacy placeholder shape and is safe to rerun.
+
+```bash
+# Docker
+docker exec -i ac-database mysql -uroot -ppassword acore_world < \
+  modules/mod-llm-chatter/data/sql/world/updates/20260913_remove_legacy_spell_dbc_placeholders.sql
+
+# Non-Docker
+mysql -uroot -ppassword acore_world < \
+  data/sql/world/updates/20260913_remove_legacy_spell_dbc_placeholders.sql
+```
+
+Restart worldserver after applying this repair so it reloads the restored
+client DBC records. Fresh installations using the current talent-data SQL
+do not create the incomplete rows and do not need this repair.
+
+### Character-database migrations
+
+Apply the relevant character migrations when upgrading:
 
 ```bash
 # Docker

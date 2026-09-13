@@ -1,5 +1,19 @@
 # Changelog
 
+### 2026-09-13 - Existing-Install Spell DBC Repair
+
+* **Legacy override cleanup**: Added an idempotent world-database
+  migration that removes incomplete rank-one talent `spell_dbc` rows
+  created by chatter versions before April 9, 2026. These placeholder
+  overrides could hide the real client spell effects and trigger broad
+  SpellScript validation warnings during worldserver startup.
+* **Custom overrides preserved**: Cleanup requires the legacy
+  all-default gameplay-field signature, so complete overrides supplied
+  by other modules or administrators are retained.
+* **Upgrade guidance**: Existing affected installations must apply
+  `data/sql/world/updates/20260913_remove_legacy_spell_dbc_placeholders.sql`
+  and restart worldserver. Fresh installations are unaffected.
+
 ### 2026-09-09 - General Channel Pacing
 
 * **Cross-source conversation spacing**: Automated ambient, transport,
