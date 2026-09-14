@@ -14,9 +14,13 @@ own `maintenance` behavior, no new mechanics needed (see this
 session's design conversation). Only gear and gold are handled
 here.
 
-Run this as a standalone periodic job (e.g. a cron-style call
-from whatever schedules milestone-2 wiring) — it is intentionally
-NOT imported by llm_chatter_bridge.py yet.
+Run as a standalone periodic job — see chatter_intent_runner.py
+(its own compose service, `chatter-intent`), not imported into
+llm_chatter_bridge.py's main loop. Deliberately kept out of that
+loop's ThreadPoolExecutor: this is pure DB read/write with no LLM
+call and no online-player requirement, so it has nothing to gain
+from sharing the bridge's worker pool, and a bug here can't touch
+the working chat pipeline.
 """
 
 import json
