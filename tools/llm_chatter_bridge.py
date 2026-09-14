@@ -932,6 +932,21 @@ def _config_enabled(config, key, default='1'):
     return str(config.get(key, default)).strip() == '1'
 
 
+def _always_on_guilds_configured(config):
+    """True if LLMChatter.GuildChatter.AlwaysOnGuildIds names at least
+    one guild. Used to keep the bridge's global players_online gate open
+    for a curated narrative cast even with no real player online — the
+    C++ side (LLMChatterWorld.cpp) already queues guild_idle_chatter
+    events unattended for these guilds, but this Python-side gate
+    ("skip all work if no real players are online") would otherwise
+    never even look at the event queue to find them.
+    """
+    raw = config.get(
+        'LLMChatter.GuildChatter.AlwaysOnGuildIds', ''
+    )
+    return bool(str(raw).strip())
+
+
 def _config_int(config, key, default, minimum=None):
     """Parse an integer config value with optional clamp."""
     try:
@@ -2054,6 +2069,24 @@ def main():
                     any_real_players_online(db)
                 )
 
+                # Event fetch/dispatch specifically also stays active
+                # with no real player online when always-on guilds are
+                # configured (LLMChatter.GuildChatter.AlwaysOnGuildIds)
+                # — otherwise the C++ side can queue guild_idle_chatter
+                # events unattended (LLMChatterWorld.cpp already does
+                # this) but this loop would never even look at the
+                # queue to find them. Deliberately NOT folded into
+                # players_online itself — that would also suppress the
+                # online→offline session-cleanup transition below for
+                # a *real* player logging out while always-on guilds
+                # are configured.
+                bridge_active = (
+                    players_online
+                    or _always_on_guilds_configured(
+                        config
+                    )
+                )
+
                 # Transition online → offline: wipe
                 # all ephemeral session data once
                 if (
@@ -2137,7 +2170,7 @@ def main():
 
                 # Fetch + dispatch events
                 dispatched = 0
-                if use_event_system and players_online:
+                if use_event_system and bridge_active:
                     available = (
                         max_concurrent
                         - len(active_futures)
