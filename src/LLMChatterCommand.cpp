@@ -7,6 +7,7 @@
 #include "CommandScript.h"
 #include "Config.h"
 #include "DatabaseEnv.h"
+#include "LLMChatterAuction.h"
 #include "LLMChatterConfig.h"
 #include "LLMChatterShared.h"
 #include "Player.h"
@@ -930,10 +931,21 @@ public:
 
     ChatCommandTable GetCommands() const override
     {
+        // Verified 2026-09-14 against the real source: the root
+        // command was Console::No, which genuinely blocks SOAP
+        // (confirmed by direct SOAP testing — distinct from the
+        // *bare terminal console*'s separately-reduced command
+        // set found earlier this session, e.g. no .summon/.appear).
+        // Flipped to Console::Yes for ahlist/ahbuy below (SOAP-only
+        // by design). Safe: every subcommand here already does its
+        // own explicit permission check (roster/get/set are
+        // player-facing and harmless via console anyway; ahlist/
+        // ahbuy self-check SEC_GAMEMASTER in LLMChatterAuction.cpp
+        // regardless of this table-level flag).
         static ChatCommandTable commandTable =
         {
             { "llmc", HandleRootCommand,
-              SEC_PLAYER, Console::No },
+              SEC_PLAYER, Console::Yes },
         };
 
         return commandTable;
@@ -981,6 +993,18 @@ public:
         if (command == "forget")
             return HandleForgetCommand(
                 handler, rest);
+
+        // GM-only, SOAP-reachable — see
+        // LLMChatterAuction.cpp. Deliberately not part of
+        // the addon-facing roster/get/set/etc. group above
+        // (those use SendAddonLine's CHATTER_ADDON-prefixed
+        // protocol for the Chatter Companion addon to parse;
+        // these two are plain admin output instead).
+        if (command == "ahlist")
+            return HandleAhListCommand(handler, rest);
+
+        if (command == "ahbuy")
+            return HandleAhBuyCommand(handler, rest);
 
         SendAddonLine(
             handler,
