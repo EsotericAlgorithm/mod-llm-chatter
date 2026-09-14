@@ -204,7 +204,7 @@ bool HandleAhListCommand(
     if (!bot || !bot->IsInWorld())
     {
         handler->PSendSysMessage(
-            "Bot '%s' is not online — ahlist only "
+            "Bot '{}' is not online — ahlist only "
             "supports online targets (see file header "
             "for why).",
             botName.c_str());
@@ -215,7 +215,7 @@ bool HandleAhListCommand(
     if (!item)
     {
         handler->PSendSysMessage(
-            "%s doesn't have item %u in their bags.",
+            "{} doesn't have item {} in their bags.",
             bot->GetName().c_str(), itemEntry);
         return true;
     }
@@ -299,8 +299,8 @@ bool HandleAhListCommand(
     CharacterDatabase.CommitTransaction(trans);
 
     handler->PSendSysMessage(
-        "%s listed %s (entry %u) for %u copper buyout — "
-        "auction %u.",
+        "{} listed {} (entry {}) for {} copper buyout — "
+        "auction {}.",
         bot->GetName().c_str(), item->GetTemplate()->Name1.c_str(),
         itemEntry, buyoutCopper, entry->Id);
     return true;
@@ -337,7 +337,7 @@ bool HandleAhBuyCommand(
     if (!buyer || !buyer->IsInWorld())
     {
         handler->PSendSysMessage(
-            "Bot '%s' is not online — ahbuy only "
+            "Bot '{}' is not online — ahbuy only "
             "supports online targets (see file header "
             "for why).",
             botName.c_str());
@@ -360,14 +360,14 @@ bool HandleAhBuyCommand(
     if (!entry)
     {
         handler->PSendSysMessage(
-            "No active auction with id %u.", auctionId);
+            "No active auction with id {}.", auctionId);
         return true;
     }
 
     if (entry->owner == buyer->GetGUID())
     {
         handler->PSendSysMessage(
-            "%s can't buy their own auction.",
+            "{} can't buy their own auction.",
             buyer->GetName().c_str());
         return true;
     }
@@ -378,7 +378,7 @@ bool HandleAhBuyCommand(
     if (buyer->GetMoney() < entry->buyout)
     {
         handler->PSendSysMessage(
-            "%s doesn't have enough gold (%u copper "
+            "{} doesn't have enough gold ({} copper "
             "needed).",
             buyer->GetName().c_str(), entry->buyout);
         return true;
@@ -388,7 +388,7 @@ bool HandleAhBuyCommand(
     if (!item)
     {
         handler->PSendSysMessage(
-            "Auction %u's item could not be loaded — "
+            "Auction {}'s item could not be loaded — "
             "database may be inconsistent, not "
             "completing the purchase.",
             auctionId);
@@ -474,7 +474,7 @@ bool HandleAhBuyCommand(
     CharacterDatabase.CommitTransaction(trans);
 
     handler->PSendSysMessage(
-        "%s bought auction %u for %u copper%s.",
+        "{} bought auction {} for {} copper{}.",
         buyer->GetName().c_str(), auctionId, entry->buyout,
         mailedInstead ? " (mailed — bags were full)" : "");
 
