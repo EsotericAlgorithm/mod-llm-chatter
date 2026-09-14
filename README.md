@@ -32,23 +32,28 @@ Built from the ground up for **fantasy roleplay immersion**. Every system, perso
 
 ## Features
 
-* **Roleplay-First Personalities**: Every bot is a distinct character in Azeroth's story. Their dialogue is deeply rooted in their race, class, and assigned personality traits, dynamically enhanced by their specialized talent builds. Bots stay in character, a Forsaken warlock speaks nothing like a Draenei paladin, and both draw from the lore and culture of their people to feel like living, breathing inhabitants of the world.
-* **Persistent Personality & Memories**: Your companions remember you. Each bot carries a unique, permanent personality. Every dungeon you clear together, every boss you defeat, every achievement you earn, every level milestone, all of it is written into that bot's memory as a personal journal entry. The next time you group up, they might reference that time you wiped in Shadowfang Keep, or fondly recall discovering a hidden corner of Teldrassil together. Your relationship with each companion deepens over time, building the kind of shared history that makes a party of adventurers feel like old friends reunited at an inn.
-* **Background Stories**: Every bot has an origin. When a companion first joins your group, the LLM generates a short background story rooted in their race, class, and personality traits — where they were born, who raised them, and the events that shaped who they are. A blood elf mage might carry the scars of Silvermoon's fall; a dwarf warrior might have learned to fight in the pits beneath Ironforge. These backstories are persistent, surviving across sessions, and are occasionally woven into idle chatter and ambient dialogue, giving bots a subtle sense of personal history without ever breaking the flow of conversation. View and regenerate backstories anytime through the Chatter Companion addon.
-* **Deep Spatial & Lore Awareness**: Bots possess an intimate understanding of their surroundings, maintaining full awareness of both the broader world zones and the specific subzones within them. Whether you are wandering the vibrant paths of Elwynn Forest, traversing the vast snows of Dragonblight, or delving into the ancient mysteries of the Ruins of Mathystra in Darkshore, bots draw from over 3,000 unique descriptions to comment on the history, magic, and atmosphere of your exact location. In cities, they notice when you enter a new district, walking into the Cenarion Enclave or Krasus' Landing prompts a natural comment about the surroundings.
-* **Conscious World Sensing**: The world is alive, and your companions notice it. Bots dynamically react to everything in their vicinity, from wildlife and rare creatures to NPCs, ancient ruins, weathered statues, and eerie altars. They also observe functional points of interest like moonwells, crackling fireplaces, and bustling forges, while adapting to weather changes, the time of day, arriving zeppelins, and seasonal holidays.
-* **Organic Party Interactivity**: Your companions don't just follow; they interact. They will strike up multi-bot conversations, ask you unprompted questions about your journey, and react authentically to combat, loot, and quest milestones. Seamlessly integrated with the game's emote and voice systems, bots punctuate their dialogue with physical gestures and audible character voices, bringing an extra layer of life to everything from the thrill of an achievement to quiet banter by the campfire.
-* **A Living, Breathing World**: The immersion extends beyond your immediate party. The open world's General channel hums with ambient bot chatter, reacting to real player messages and world events. Guards, vendors, trainers, and citizens engage in proximity `/say` conversations as you walk past, your party bots join in too, slipping naturally between party chat and the world around them. In battlegrounds, bots shout tactical callouts rooted in faction pride, while in raids, they brace for encounters across 148 iconic bosses, sharing lore and rallying morale between pulls.
-* **Guild Hall Camaraderie**: Beyond the party and the open world,
-  your guild feels like a real group of adventurers instead of a silent
-  roster. Guildmates share stories, trade jokes, voice their opinions,
-  and fall into conversations of their own. Speak in Guild Chat and
-  they answer as familiar companions, remembering what has been said
-  and carrying shared threads forward naturally. When you return to
-  Azeroth, a warm welcome from your guild helps make the channel feel
-  like a community that was already alive before you arrived.
-* **Seamless Fantasy Immersion**: Designed to preserve the roleplay atmosphere, the module features smart pacing, multi-character conversation flow, and natural reading delays. No repetitive robotic spam, no fourth-wall breaks, just natural, in-character dialogue that deepens the fantasy of adventuring through Azeroth.
-* **Zero Server Impact**: All LLM processing runs in a separate bridge service with a thread-pool worker model. The game server simply drops event rows into the database and moves on, never waiting on an API call. Responses flow back through the same queue and are delivered on the next world tick, keeping your server performance completely unaffected.
+* **Roleplay-first characters**: Bots speak as distinct inhabitants of
+  Azeroth, shaped by race, class, talents, personality, and lore. Natural
+  pacing, multi-character flow, emotes, and voices keep conversations
+  immersive.
+* **Persistent personalities and histories**: Each companion keeps a stable
+  identity, generated backstory, and memories of shared dungeons, bosses,
+  achievements, and milestones. Backstories can be viewed or regenerated
+  through the Chatter Companion addon.
+* **Location and world awareness**: More than 3,000 zone and subzone
+  descriptions ground dialogue in the surrounding lore. Bots notice nearby
+  creatures, NPCs, objects, points of interest, weather, time, transports,
+  and holidays.
+* **Interactive parties**: Companions banter with one another, ask the player
+  questions, and react to combat, loot, quests, achievements, and travel.
+* **Living public channels**: Ambient General chat, proximity `/say`, player
+  replies, battleground callouts, and encounter-aware raid dialogue make the
+  wider world feel populated.
+* **Social guild chat**: Guildmates greet returning players, answer messages,
+  hold conversations, and carry shared context forward during a session.
+* **Non-blocking architecture**: LLM work runs in a separate, concurrent
+  bridge service. Worldserver queues events and delivers completed responses
+  without waiting on provider calls.
 
 ---
 
