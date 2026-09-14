@@ -459,7 +459,15 @@ bool HandleAhBuyCommand(
         .AddMoney(entry->buyout)
         .SendMailTo(
             trans,
-            MailReceiver(entry->owner),
+            // MailReceiver's ObjectGuid::LowType constructor
+            // takes the raw uint32 counter, not a full
+            // ObjectGuid — .GetCounter() extracts it. Caught by
+            // the actual compiler on this exact line (ambiguous
+            // conversion) — this is the one place my source
+            // verification pass didn't catch a real bug before
+            // the build did; every other fix in this file was
+            // caught by reading, this one only by compiling.
+            MailReceiver(entry->owner.GetCounter()),
             MailSender(MAIL_AUCTION, entry->Id),
             MAIL_CHECK_MASK_COPIED);
 
