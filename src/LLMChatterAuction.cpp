@@ -395,11 +395,30 @@ bool HandleAhBuyCommand(
         return true;
     }
 
+    // AuctionHouseObject::RemoveAuction() deletes the
+    // AuctionEntry it's given (confirmed real — it's the
+    // entry's own removal path, not just an unmap) — so every
+    // field of `entry` this function still needs after that
+    // call has to be copied out first. The first version of
+    // this function kept reading entry->owner/buyout/Id after
+    // RemoveAuction() (use-after-free) and then called `delete
+    // entry` again on top of that (double-free) — caught live
+    // via SOAP: the seller mail arrived with receiver=0 and a
+    // garbage buyout value instead of Ordon's guid and 100
+    // copper. Not caught by source-reading beforehand because
+    // RemoveAuction's signature gives no hint it takes
+    // ownership; only checking its body (and the corrupted
+    // real mail row) caught it.
+    uint32 const auctionBuyout = entry->buyout;
+    uint32 const auctionEntryId = entry->Id;
+    ObjectGuid::LowType const sellerLowGuid =
+        entry->owner.GetCounter();
+
     CharacterDatabaseTransaction trans =
         CharacterDatabase.BeginTransaction();
 
     buyer->ModifyMoney(
-        -static_cast<int32>(entry->buyout));
+        -static_cast<int32>(auctionBuyout));
 
     // Confirmed real: InventoryResult CanStoreItem(uint8 bag,
     // uint8 slot, ItemPosCountVec& dest, Item* pItem, bool swap
@@ -430,33 +449,22 @@ bool HandleAhBuyCommand(
                 trans,
                 buyer,
                 MailSender(
-                    MAIL_AUCTION, entry->Id),
+                    MAIL_AUCTION, auctionEntryId),
                 MAIL_CHECK_MASK_COPIED);
     }
-
-    // Confirmed real 2026-09-14: RemoveAItem(ObjectGuid itemGuid,
-    // bool deleteFromDB = false, CharacterDatabaseTransaction*
-    // trans = nullptr) — AuctionHouseMgr.h. Defaults match this
-    // single-arg call; the item's DB row is handled via the
-    // buyer's own StoreItem/mail path below instead.
-    sAuctionMgr->RemoveAItem(entry->item_guid);
-    entry->DeleteFromDB(trans);                 // confirmed real
-    auctionHouse->RemoveAuction(entry);         // confirmed real
-    // Same reasoning as ahlist — persist the buyer's inventory/
-    // gold change into this transaction rather than relying on
-    // the next periodic autosave.
-    buyer->SaveInventoryAndGoldToDB(trans);
 
     // Mail proceeds to the seller regardless of whether
     // they're online — MailDraft delivery doesn't need a
     // live session, which sidesteps the online-only
     // restriction that applies to the buyer/seller's own
-    // money and inventory above.
+    // money and inventory above. Built before RemoveAuction()
+    // below frees `entry` — every value it needs was already
+    // copied into locals above.
     MailDraft(
         "Auction sold",
-        "Your auction sold for " + std::to_string(entry->buyout)
+        "Your auction sold for " + std::to_string(auctionBuyout)
             + " copper.")
-        .AddMoney(entry->buyout)
+        .AddMoney(auctionBuyout)
         .SendMailTo(
             trans,
             // MailReceiver's ObjectGuid::LowType constructor
@@ -467,17 +475,33 @@ bool HandleAhBuyCommand(
             // verification pass didn't catch a real bug before
             // the build did; every other fix in this file was
             // caught by reading, this one only by compiling.
-            MailReceiver(entry->owner.GetCounter()),
-            MailSender(MAIL_AUCTION, entry->Id),
+            MailReceiver(sellerLowGuid),
+            MailSender(MAIL_AUCTION, auctionEntryId),
             MAIL_CHECK_MASK_COPIED);
+
+    // Confirmed real 2026-09-14: RemoveAItem(ObjectGuid itemGuid,
+    // bool deleteFromDB = false, CharacterDatabaseTransaction*
+    // trans = nullptr) — AuctionHouseMgr.h. Defaults match this
+    // single-arg call; the item's DB row is handled via the
+    // buyer's own StoreItem/mail path below instead.
+    sAuctionMgr->RemoveAItem(entry->item_guid);
+    entry->DeleteFromDB(trans);                 // confirmed real
+    // Frees `entry` internally (AuctionHouseObject::RemoveAuction
+    // -> delete auction — confirmed by reading its body, not
+    // just its signature). Must be the last thing done with
+    // `entry`; nothing below may dereference it again.
+    auctionHouse->RemoveAuction(entry);
+    // Same reasoning as ahlist — persist the buyer's inventory/
+    // gold change into this transaction rather than relying on
+    // the next periodic autosave.
+    buyer->SaveInventoryAndGoldToDB(trans);
 
     CharacterDatabase.CommitTransaction(trans);
 
     handler->PSendSysMessage(
         "{} bought auction {} for {} copper{}.",
-        buyer->GetName().c_str(), auctionId, entry->buyout,
+        buyer->GetName().c_str(), auctionId, auctionBuyout,
         mailedInstead ? " (mailed — bags were full)" : "");
 
-    delete entry;
     return true;
 }
