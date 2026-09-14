@@ -684,6 +684,21 @@ void LLMChatterConfig::LoadConfig()
         GetChatterOption<uint32>(
             "LLMChatter.GuildChatter."
             "Cooldown", 300);
+    std::string guildAlwaysOnIds =
+        GetChatterOption<std::string>(
+            "LLMChatter.GuildChatter."
+            "AlwaysOnGuildIds", "");
+    auto parsedGuildAlwaysOnIds =
+        std::make_shared<std::unordered_set<uint32> const>(
+            ParseCreatureEntrySet(
+                guildAlwaysOnIds,
+                "GuildChatter.AlwaysOnGuildIds"));
+    std::atomic_store(&_guildAlwaysOnIds,
+        std::move(parsedGuildAlwaysOnIds));
+    _guildAlwaysOnCooldownSeconds =
+        GetChatterOption<uint32>(
+            "LLMChatter.GuildChatter."
+            "AlwaysOnCooldownSeconds", 1800);
     _guildChatterScanInterval =
         GetChatterOption<uint32>(
             "LLMChatter.GuildChatter."

@@ -695,6 +695,19 @@ private:
             if (uint32 gid = player->GetGuildId())
                 activeGuilds.insert(gid);
         }
+
+        // Narrative-cast guilds (LLMChatter.GuildChatter.AlwaysOnGuildIds)
+        // keep generating idle chatter even with no real player online —
+        // for a curated cast the player isn't a member of. Everything
+        // above (and below, for guilds not in this set) is untouched.
+        std::shared_ptr<std::unordered_set<uint32> const> alwaysOnGuilds =
+            std::atomic_load(&sLLMChatterConfig->_guildAlwaysOnIds);
+        if (alwaysOnGuilds)
+        {
+            for (uint32 gid : *alwaysOnGuilds)
+                activeGuilds.insert(gid);
+        }
+
         if (activeGuilds.empty())
             return;
 
@@ -744,11 +757,22 @@ private:
                 continue;
             }
 
+            // Always-on (unattended) guilds use a much slower cooldown
+            // than the normal real-player-triggered path — keeps 24/7
+            // operation cheap instead of matching the chatty default
+            // cadence meant for a session someone's actually watching.
+            bool isAlwaysOn = alwaysOnGuilds
+                && alwaysOnGuilds->count(guildId) > 0;
+            time_t effectiveCooldown = isAlwaysOn
+                ? (time_t)sLLMChatterConfig
+                      ->_guildAlwaysOnCooldownSeconds
+                : (time_t)sLLMChatterConfig
+                      ->_guildChatterCooldown;
+
             auto cdIt = guildCooldowns.find(guildId);
             if (cdIt != guildCooldowns.end()
                 && nowSec - cdIt->second
-                    < (time_t)sLLMChatterConfig
-                          ->_guildChatterCooldown)
+                    < effectiveCooldown)
                 continue;
 
             if (urand(1, 100)

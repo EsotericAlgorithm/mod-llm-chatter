@@ -1799,6 +1799,27 @@ LLMChatter.GuildChatter.Chance = 15
 LLMChatter.GuildChatter.Cooldown = 300
 
 #
+#   LLMChatter.GuildChatter.AlwaysOnGuildIds
+#       Comma-separated guild IDs that keep generating idle Guild
+#       chatter even when no real player is online — for a curated
+#       narrative cast the player isn't a member of. Every other guild
+#       keeps the original behavior (chatter only while a real player
+#       is online to read it). Uses AlwaysOnCooldownSeconds below
+#       instead of Cooldown.
+#       Default: (none)
+#
+LLMChatter.GuildChatter.AlwaysOnGuildIds =
+
+#
+#   LLMChatter.GuildChatter.AlwaysOnCooldownSeconds
+#       Minimum seconds between Guild chatter events for an always-on
+#       guild (see above) — deliberately much slower than Cooldown so
+#       24/7 unattended operation stays cheap.
+#       Default: 1800 (30 minutes)
+#
+LLMChatter.GuildChatter.AlwaysOnCooldownSeconds = 1800
+
+#
 #   LLMChatter.GuildChatter.ScanInterval
 #       Seconds between world scans for eligible
 #       guilds. Kept separate from Cooldown so

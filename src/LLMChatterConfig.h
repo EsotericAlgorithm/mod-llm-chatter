@@ -258,6 +258,14 @@ public:
     bool _guildChatterEnable{true};
     uint32 _guildChatterChance{15};
     uint32 _guildChatterCooldown{300};
+    // Guilds that keep generating idle chatter with no real player
+    // online, on a much slower cadence (_guildAlwaysOnCooldownSeconds
+    // instead of _guildChatterCooldown) — for a curated narrative cast
+    // the player isn't a member of. Everything else keeps the original
+    // real-player-required behavior untouched. See
+    // LLMChatter.GuildChatter.AlwaysOnGuildIds.
+    std::shared_ptr<std::unordered_set<uint32> const> _guildAlwaysOnIds;
+    uint32 _guildAlwaysOnCooldownSeconds{1800};
     uint32 _guildChatterScanInterval{30};
     uint32 _guildChatterConversationChance{50};
     uint32 _guildChatterMaxParticipants{3};
